@@ -1,0 +1,90 @@
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Background Remover</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+  <h1>Remove Background from Image</h1>
+
+  <div class="container-box">
+    <label class="custom-file-upload">
+      <input type="file" id="imageInput" accept="image/*" onchange="previewImage()" />
+      📁 Click or Drop Image to Upload
+    </label>
+    
+    <br /><br />
+
+    <!-- Preview of uploaded image -->
+    <div>
+      <h5>Original Image Preview:</h5>
+      <div class="center-image">
+  <img id="previewImage" src="" alt="" style="max-width: 300px; display: none;" />
+</div>
+
+    <br />
+
+    <button onclick="removeBackground()">Remove Background</button>
+    
+    <br /><br />
+    
+    <!-- Result after background is removed -->
+    <div>
+      <h5>Image Without Background:</h5>
+      <img id="resultImage" src="" alt="" style="max-width: 300px;" />
+    </div>
+  </div>
+
+  <script>
+    function previewImage() {
+      const input = document.getElementById('imageInput');
+      const preview = document.getElementById('previewImage');
+
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        };
+
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function removeBackground() {
+      const input = document.getElementById('imageInput');
+      const resultImg = document.getElementById('resultImage');
+
+      if (!input.files.length) {
+        alert('Please select an image.');
+        return;
+      }
+
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append('image', file);
+
+      fetch('/remove-bg', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Failed to process image");
+        return response.blob();
+      })
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        resultImg.src = url;
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert("Something went wrong. Check the console.");
+      });
+    }
+  </script>
+
+</body>
